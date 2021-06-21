@@ -7,3 +7,7 @@ Simple tool to track upload & download data in MB from program start
 
 # Run
 > `python main.py`
+
+# Analysis
+This will show graphs showing the data from the last dumped session
+> `streamlit run analysis.py`

@@ -12,4 +12,7 @@ Simple tool to track upload & download data in MB from program start
 This will show graphs showing the data from the last dumped session
 > `streamlit run analysis.py`
 
-![Example](https://infernum.sh/files/FCzjL9nyag.png)
+
+# Images
+![](https://infernum.sh/files/Jfhue5MQid.png)
+![](https://infernum.sh/files/FCzjL9nyag.png)

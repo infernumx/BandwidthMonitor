@@ -23,3 +23,8 @@ class NetworkData:
         return NetworkData(
             self.sent - b.sent, self.received - b.received, datetime.now()
         )
+
+    def __add__(self, b):
+        return NetworkData(
+            self.sent + b.sent, self.received + b.received, datetime.now()
+        )

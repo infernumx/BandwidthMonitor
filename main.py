@@ -1,6 +1,8 @@
 import PySimpleGUI as sg
 from bandwidth_monitor import BandwidthMonitor, ReferenceFlag, EasyElement
 from dataclasses import dataclass
+from datetime import datetime
+
 
 sg.theme("DarkAmber")
 
@@ -43,6 +45,14 @@ class MainWindow:
         ],
         [sg.Text("")],
         [
+            sg.Text(
+                "Session Start: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                size=(30, 1),
+                justification="center",
+            )
+        ],
+        [sg.Text("")],
+        [
             sg.Button("Dump Session", key="-DUMP_SESSION-"),
             sg.Button("Data Log", key="-DATA_LOG_BTN-"),
         ],
@@ -52,7 +62,7 @@ class MainWindow:
         self.window = sg.Window(
             "Bandwidth Monitor",
             MainWindow.layout,
-            size=(280, 120),
+            size=(280, 180),
             finalize=True,
             element_justification="center",
         )

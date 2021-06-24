@@ -5,18 +5,40 @@ import streamlit as st
 import altair as alt
 from bandwidth_monitor import NetworkData
 import datetime
+import logging
 
-filename = easygui.fileopenbox()
-data_by_hour = [[0, 0]]
+
+def create_logger(
+    name=None, stream=True, logfile=None, level=logging.INFO, propagate=False
+):
+    logger = logging.getLogger(name)
+    formatter = logging.Formatter(
+        fmt="[{asctime}] {levelname:<8} | {filename}:{lineno} -> {message}",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        style="{",
+    )
+
+    if stream:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+
+    if logfile:
+        file_handler = logging.FileHandler(logfile, mode="w", encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
+    logger.setLevel(level)
+    logger.propagate = propagate
+    return logger
 
 
 def process_dumpfile(filename):
-    base: NetworkData = None
-    ndata: NetworkData = None
+    base_network_data: NetworkData = None
+    last_threshold_data: NetworkData = None
     future: datetime.datetime = None
     hours = 1
-    sent = []
-    recv = []
+    processed = {"sent": [], "recv": [], "aggr": {"sent": [], "recv": []}}
 
     with open(filename) as f:
         for line in f:
@@ -25,18 +47,43 @@ def process_dumpfile(filename):
                 seconds=network_data.time.second,
                 microseconds=network_data.time.microsecond,
             )
-            if not base:
-                base = network_data
-                future = base.time + (datetime.timedelta(0, hours=1) - delta)
+
+            if not base_network_data:
+                base_network_data = network_data
+                future = base_network_data.time + (
+                    datetime.timedelta(0, hours=1) - delta
+                )
+                logger.info("Base network data: " + str(base_network_data))
                 continue
 
-            if network_data.time - delta > future:
-                sent.append(network_data.sent)
-                recv.append(network_data.received)
-                hours += 1
-                future = base.time + (datetime.timedelta(0, hours=hours) - delta)
+            logger.info("Current network data: " + str(network_data))
 
-    return sent, recv
+            if network_data.time - delta > future:
+                hours += 1
+                processed["sent"].append(network_data.sent)
+                processed["recv"].append(network_data.received)
+
+                logger.info(f"Hour {hours} threshold reached")
+                difference: NetworkData = None
+
+                # Calculate difference in data from the last hour
+                if last_threshold_data is None:
+                    logger.info(f"Network data for the last hour: {network_data}")
+                    difference = network_data
+                else:
+                    logger.info(f"Network data for the last hour: {difference}")
+                    difference = network_data - last_threshold_data
+
+                last_threshold_data = network_data
+
+                # Reset data for next threshold
+                future = base_network_data.time + (
+                    datetime.timedelta(0, hours=hours) - delta
+                )
+                processed["aggr"]["sent"].append(difference.sent)
+                processed["aggr"]["recv"].append(difference.received)
+
+    return processed
 
 
 def create_line_graph(data, y_axis):
@@ -45,22 +92,45 @@ def create_line_graph(data, y_axis):
     return alt.Chart(df).mark_line().encode(x="Hours", y=y_axis)
 
 
-sent, recv = process_dumpfile(filename)
+logger = create_logger("NetworkData", stream=False, logfile="NetworkData.log")
+filename = easygui.fileopenbox()
+
+# Processing data
+processed = process_dumpfile(filename)
+
+sent, recv = processed["sent"], processed["recv"]
 data_by_hour = list(zip(sent, recv))
-
-st.title("Bandwidth Monitor")
-
-data = [{"Sent": sent, "Received": received} for sent, received in data_by_hour]
-
 data_length = len(data_by_hour)
 fill = len(str(data_length))
 
-df = pd.DataFrame(
-    data, index=[f"Hour {str(i).zfill(fill)}" for i in range(data_length)]
+df_hourly_data = pd.DataFrame(
+    [{"Sent": sent, "Received": received} for sent, received in data_by_hour],
+    index=[f"Hour {str(i).zfill(fill)}" for i in range(data_length)],
 )
-st.line_chart(df)
+
+diff_sent, diff_recv = processed["aggr"]["sent"], processed["aggr"]["recv"]
+diff_by_hour = list(zip(diff_sent, diff_recv))
+data_length = len(diff_by_hour)
+fill = len(str(data_length))
+
+df_diff_data = pd.DataFrame(
+    [{"Sent": sent, "Received": received} for sent, received in diff_by_hour],
+    index=[f"Hour {str(i).zfill(fill)}" for i in range(data_length)],
+)
+
+# pid 1216
+
+# Streamlit UI setup
+
+st.title("Bandwidth Monitor")
+
+st.text("Hourly data usage")
+st.line_chart(df_hourly_data)
 
 sent_chart = create_line_graph(sent, "Sent data in MB")
 recv_chart = create_line_graph(recv, "Received data in MB")
 
 st.altair_chart(sent_chart | recv_chart)
+
+st.text("Hourly data differences")
+st.bar_chart(df_diff_data)

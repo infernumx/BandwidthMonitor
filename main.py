@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from bandwidth_monitor import BandwidthMonitor, ReferenceFlag, EasyElement
+from bandwidth_monitor import BandwidthMonitor, BoolFlag, EasyElement
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -8,7 +8,7 @@ sg.theme("DarkAmber")
 
 
 class DataLog:
-    def __init__(self, monitor, activated: ReferenceFlag):
+    def __init__(self, monitor, activated: BoolFlag):
         layout = [
             [
                 sg.Listbox(
@@ -67,7 +67,7 @@ class MainWindow:
             element_justification="center",
         )
 
-        self.data_log_flag = ReferenceFlag()
+        self.data_log_flag = BoolFlag()
         self.data_log = None
 
         self.monitor = BandwidthMonitor(

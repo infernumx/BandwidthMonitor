@@ -11,7 +11,7 @@ class EasyElement:
 
 
 @dataclass
-class ReferenceFlag:
+class BoolFlag:
     flag: bool = False
 
     def set(self):

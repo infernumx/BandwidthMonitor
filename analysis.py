@@ -94,9 +94,9 @@ def create_line_graph(data, y_axis):
 
 logger = create_logger("NetworkData", stream=False, logfile="NetworkData.log")
 filename = easygui.fileopenbox()
-
-# Processing data
 processed = process_dumpfile(filename)
+
+# Constant hourly data
 
 sent, recv = processed["sent"], processed["recv"]
 data_by_hour = list(zip(sent, recv))
@@ -108,6 +108,8 @@ df_hourly_data = pd.DataFrame(
     index=[f"Hour {str(i).zfill(fill)}" for i in range(data_length)],
 )
 
+# Difference in data by hour
+
 diff_sent, diff_recv = processed["aggr"]["sent"], processed["aggr"]["recv"]
 diff_by_hour = list(zip(diff_sent, diff_recv))
 data_length = len(diff_by_hour)
@@ -117,8 +119,6 @@ df_diff_data = pd.DataFrame(
     [{"Sent": sent, "Received": received} for sent, received in diff_by_hour],
     index=[f"Hour {str(i).zfill(fill)}" for i in range(data_length)],
 )
-
-# pid 1216
 
 # Streamlit UI setup
 

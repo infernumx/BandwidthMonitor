@@ -1,5 +1,5 @@
 # BandwidthMonitor
-Simple tool to track upload & download data in MB from program start
+Tool that monitors total bandwidth over a given session, as well as an analyzer to monitor when you use the most data.
 
 
 # Setup

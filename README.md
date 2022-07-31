@@ -14,6 +14,6 @@ This will show graphs showing the data from the last dumped session
 
 
 # Images
-![](https://infernum.sh/files/Jfhue5MQid.png)
-![](https://infernum.sh/files/FCzjL9nyag.png)
-![](https://infernum.sh/files/tz4JZufnbi.png)
+![](https://void.s-ul.eu/fYHbHWAl)
+![](https://void.s-ul.eu/9jWJcGa1)
+
